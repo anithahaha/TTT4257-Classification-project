@@ -1,0 +1,3 @@
+handwritten_digits/data_train.txt
+handwritten_digits/train.txt
+*.txt
