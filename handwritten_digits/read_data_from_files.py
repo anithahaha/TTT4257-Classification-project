@@ -4,10 +4,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-# Constants
-imagefile = 'train_images.bin'
-labelfile = 'train_labels.bin'
-txtfile = 'data_train.txt'
+# Datafiles
+# Train
+imagefile_train = 'handwritten_digits/train_images.bin'
+labelfile_train = 'handwritten_digits/train_labels.bin'
+txtfile_train = 'handwritten_digits/data_train.txt'
+
+#Test
+imagefile_test = 'handwritten_digits/test_images.bin'
+labelfile_test = 'handwritten_digits/test_labels.bin'
+txtfile_test = 'handwritten_digits/data_test.txt'
 
 # Open binary file and and add data to txt
 def convert(img_file, label_file, txt_file, n_images):
@@ -44,4 +50,11 @@ def display_from_file(txtfile, idx):
     #plt.imsave('figures/testbilde.png', image, cmap="gray")
 
 #convert(imagefile, labelfile, txtfile, 60000)
-display_from_file(txtfile, idx=55)
+display_from_file(txtfile_train, idx=56)
+
+def sort_values(values, labels):
+    #Sorts values by class [0-9]
+    labels = np.argsort(labels)
+    sorted_values = [values[i] for i in labels]
+    return sorted_values
+
