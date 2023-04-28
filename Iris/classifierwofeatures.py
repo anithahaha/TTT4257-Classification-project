@@ -10,25 +10,30 @@ def read_data(filename):
 
 iris_types = ["Iris-setosa", "Iris-versicolor", "Iris-virginica"]
 #organizing data
-data = read_data('koding/iris.data')
+data = read_data('Iris/iris.data')
 
-# Deleting features
-#data = np.delete(data, 1, 1) #np.delete(array, obj, axis). axis=0: row, axis=1: column
+#Deletes features
+data = np.delete(data, 1, 1) #np.delete(array, obj, axis). axis=0: row, axis=1: column
+data = np.delete(data, 0, 1) #np.delete(array, obj, axis). axis=0: row, axis=1: column
+data = np.delete(data, 1, 1)
 
 # Shape of data
 m, n = data.shape
-#print('data', data)
 
-class_1 = read_data('koding/class_1')
-class_2 = read_data('koding/class_2')
-class_3 = read_data('koding/class_3')
+class_1 = read_data('Iris/class_1')
+class_2 = read_data('Iris/class_2')
+class_3 = read_data('Iris/class_3')
 
 #data to train 
-def seperate_data(nTrain, nTest): #seperates data into train and test
+def seperate_data(nTrain, nTest, placement):
+    """Seperates data into train and test
+    placement chooses whether training values are first or last n
+    NB: use nTest as nTrain param if last n values are training"""
     data_train = np.concatenate((data[0:nTrain], data[50:50+nTrain], data[100:100+nTrain]))
     np.random.shuffle(data_train)
     data_train = data_train.T
-    x_train = data_train[0:n-1] #feature array
+    #feature array
+    x_train = data_train[0:n-1] 
     x_train = np.concatenate((x_train, np.ones((nTrain*3,1)).T)).T #90, expands feature array with 1 such that W array can include bias w0 
     t_train = data_train[n-1] #labels
 
@@ -38,16 +43,18 @@ def seperate_data(nTrain, nTest): #seperates data into train and test
     x_test = data_test[0:n-1]
     x_test = np.concatenate((x_test, np.ones((nTest*3,1)).T)).T #60
     t_test = data_test[n-1]
+    if placement == 'last':
+        x_train, x_test = x_test, x_train
+        t_train, t_test = t_test, t_train
     return x_train, x_test, t_train, t_test
 
-x_train, x_test, t_train, t_test = seperate_data(30, 20)
-
-#print(x_train[:, 0]) x1, first column
-
-def init_params(): #initializes W and w0 with random values from -1 to 1
+def init_params(): 
+    #initializes W with zeroes
     W = np.zeros((3, n-1))
+    #initializes w0 with ones
     w0 = np.zeros((3, 1))+1
-    W = np.concatenate((W, w0), axis=1) #puts W and w0 in one array
+    #combines W and wo [W w0]
+    W = np.concatenate((W, w0), axis=1)
     return W
 
 def z(W, xk):
@@ -62,7 +69,8 @@ def g(zk):
     gk = sigmoide(zk)
     return gk
 
-def ohe(labels): #One-hot encoding - gives labels 0 or 1 values based on true class of feature array
+def ohe(labels):
+     #One-hot encoding - gives labels 0 or 1 values based on true class of feature array
     iris_types = ["Iris-setosa", "Iris-versicolor", "Iris-virginica"]
     mapping = {}
     for x in range(len(iris_types)):
@@ -74,18 +82,19 @@ def ohe(labels): #One-hot encoding - gives labels 0 or 1 values based on true cl
         ohe_T.append(arr)
     return ohe_T
 
-def gradient_MSE(gk, tk, xk): #returns gradient of MSE with regards to W
+def gradient_MSE(gk, tk, xk): 
+    #returns gradient of MSE with regards to W
     test = np.multiply(np.multiply(gk-tk, gk), 1-gk)
     grad_MSE = np.matmul(test.reshape((3,1)), xk.T.reshape((1, n)))
     return grad_MSE
 
-#MSE -> ser på konvergering av systemet.
-
 def update_W(W, alpha, sum_grad_MSE):
+    #updates w
     new_W = W - alpha*sum_grad_MSE
     return new_W
 
 def calcMSE(gk, tk):
+    #calculates MSE
     mse_ = 1/2*np.matmul((gk-tk).T,(gk-tk))
     return mse_
 
@@ -108,7 +117,7 @@ def training(alpha, iter):
     #calculates final W for given alpha and iterations
     W = init_params()
     for j in range(iter):
-        W = calculate_w(x_train, Tn, W, alpha)
+        W = calculate_w(x_train, t_train, W, alpha)
     print('W', W)
     return W
     
@@ -132,11 +141,10 @@ def histogram(class1, class2, class3):
         plt.hist(class2[:,i], bins, alpha=0.5, label='Class 2: Iris versicolor')
         plt.hist(class3[:,i], bins, alpha=0.5, label='Class 3: Iris virginica')
         plt.legend(loc='upper right')
-        plt.title(features[i])
+        plt.ylabel('Count')
+        plt.title(features[i] + '[cm]')
         plt.plot()
         plt.show()
-
-#histogram(class_1, class_2, class_3)
 
 def confusion_matrix(expected_labels, predicted_labels, iris_types):
     num_classes = 3
@@ -155,7 +163,7 @@ def confusion_matrix(expected_labels, predicted_labels, iris_types):
 
     return conf_mat
 
-def expected_predicted_val(iris_types):
+def expected_predicted_val(iris_types, data, label):
     error = 0
     correct = 0 
     total = 0
@@ -163,11 +171,11 @@ def expected_predicted_val(iris_types):
     expected_values = []
     predicted_values = []
 
-    for i in range(60):
-        t = np.array(t_test[i])
+    for i in range(len(label)):
+        t = np.array(label[i])
         expected_values.append(iris_types[np.argmax(t)])
 
-        gk = (one_hot_max(np.abs(g(z(W_final.reshape((3,n)), x_test[i].T.reshape((n, 1)))))).T)[0]
+        gk = (one_hot_max(np.abs(g(z(W_final.reshape((3,n)), data[i].T.reshape((n, 1)))))).T)[0]
         predicted_values.append(iris_types[np.argmax(gk)])
         
         if ((t == gk ).all()):
@@ -182,14 +190,14 @@ def expected_predicted_val(iris_types):
     print("Total: ", total)  
      
     return expected_values, predicted_values, error, correct, total
+print(data.shape)
 
-Tn = ohe(t_train)
-
-W_final = training(alpha=0.0006, iter=5000) #likte tall: 0.00045,0.002,0.003
+x_train, x_test, t_train, t_test = seperate_data(30, 20, 'first')
 t_test = ohe(t_test)
+t_train = ohe(t_train)
 
-expected_values, predicted_values, error, correct, total = expected_predicted_val(iris_types)
-
+W_final = training(alpha=0.01, iter=4000) #likte tall: 0.00045,0.002,0.003, 20000
+expected_values, predicted_values, error, correct, total = expected_predicted_val(iris_types, x_test, t_test)
 confusion_matrix(expected_values, predicted_values, iris_types)
 
-print(m, n)
+#histogram(class_1, class_2, class_3)
