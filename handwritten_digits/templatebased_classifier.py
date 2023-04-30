@@ -66,10 +66,6 @@ def test(k, x_test, x_train, y_train, y_test):
     for i in range(num_x): 
         pred_value = kNN(k, x_test[i], x_train, y_train)
         prediction.append(pred_value)
-        if (int(pred_value) == int(y_test[i])):
-            print("Classified picture!")
-            print("Prediction: ", pred_value, "Actual: ", y_test[i])
-            display_image(x_test[i])
     confusion_matrix(prediction, actual[:num_x])
     error_rate(prediction, actual[:num_x])
     return prediction, actual[:num_x]
@@ -157,27 +153,25 @@ def cluster(values, labels):
     return cluster_labels, cluster_values 
 
 
-# Test for assignment part 2
-def test_clustering(x_test, y_test, x_train, y_train, k=7):
-    print("Starting\n")
-    t0 = time.time()
+# Test for assignment part 2 (KNN with clustering)
+def test_clustering(x_test, y_test, x_train, y_train, k=1):
     cluster_labels, cluster_values = cluster(x_train, y_train)
-    print("Done clustering\n")
-    print("Time clustering: ", round(time.time()-t0,2), "s")
     prediction, expectation = test(k, x_test, cluster_values, cluster_labels, y_test)
     prediction, expectation = np.array(prediction), np.array(expectation)
-    print("Time total: ", round(time.time()-t0,2), "s")
 
-    print("prediction", prediction.shape)
-    print("expectation", expectation.shape)
     confusion_matrix(expectation, prediction)
     error_rate(expectation, prediction)
 
     return prediction, expectation
 
-# Test clustering
-#test_clustering(x_test, y_test, x_train, y_train)
 
-t0 = time.time()
+# Test for assignment part 1 (KNN without clustering, first for k = 1 then for k = 7)
+print("Starting classifying k = 1")
 test(1, x_test, x_train, y_train, y_test)
-print("Runtime: ", round(time.time()-t0,2), "seconds")
+
+print("Starting classifying k = 7")
+test(7, x_test, x_train, y_train, y_test)
+
+# Test clustering
+print("Starting classifying with clustering")
+test_clustering(x_test, y_test, x_train, y_train)
