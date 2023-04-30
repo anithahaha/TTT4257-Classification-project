@@ -37,10 +37,6 @@ y_test = read_data("handwritten_digits/test_labels.bin", 'label', 10000)
 
 # Calculates euclidean distance
 def euclidean_distance(img1, img2):
-    #np.linalg.norm(q-p)
-    #math.dist(q, p)
-    #a = img1-img2 # Since we import uint8, this will give zero for img1[i]-img2[i] < 0
-    #b = np.uint8(img1<img2) * 254 + 1 # smart trick
     return math.dist(img1,img2)
 
 # Calculates k nearest neighbours
@@ -65,14 +61,17 @@ def kNN(k, x, x_train, y_train):
 
 def test(k, x_test, x_train, y_train, y_test):
     prediction = []
-    actual = y_test #egt ikke nødvendig
-    num_x = 10000
-    #print("actual", actual.shape)
-    for i in range(num_x): #change
+    actual = y_test 
+    num_x = 5
+    for i in range(num_x): 
         pred_value = kNN(k, x_test[i], x_train, y_train)
         prediction.append(pred_value)
-        #print(f'Counter: {i}')
-        #print(f'Predicted: {pred_value}, Actual: {actual[i]}\n')
+        if (int(pred_value) == int(y_test[i])):
+            print("Classified picture!")
+            print("Prediction: ", pred_value, "Actual: ", y_test[i])
+            display_image(x_test[i])
+    confusion_matrix(prediction, actual[:num_x])
+    error_rate(prediction, actual[:num_x])
     return prediction, actual[:num_x]
 
 # Calculates error rate given expected values and predicted values
@@ -95,6 +94,7 @@ def error_rate(expected_values, predicted_values):
 # Calculates and displays confusion matrix
 def confusion_matrix(expected_values, predicted_values):
     num_classes = 10
+
     # Initialize matrix
     conf_matrix = np.zeros((num_classes, num_classes))
 
@@ -108,7 +108,7 @@ def confusion_matrix(expected_values, predicted_values):
 
 # Displays image (both classified and misclassified)
 def display_image(image_array):
-    plt.imshow(image_array, cmap='gray')
+    plt.imshow(image_array.reshape(28,28), cmap='gray')
     plt.show()
 
 # Sort values by class [0,9]
@@ -154,30 +154,30 @@ def cluster(values, labels):
     cluster_labels = np.array(cluster_labels).flatten()
     cluster_values = np.array(chunks((np.array(cluster_values)).flatten(), 640)).reshape(640, 784)
 
-    #print("cluster_labels", cluster_labels.shape)
-    #print(cluster_labels)
-    #print("cluster_values", cluster_values.shape)
-
     return cluster_labels, cluster_values 
 
 
 # Test for assignment part 2
-def test_clustering(k, x_test, y_test, x_train, y_train):
+def test_clustering(x_test, y_test, x_train, y_train, k=7):
     print("Starting\n")
     t0 = time.time()
     cluster_labels, cluster_values = cluster(x_train, y_train)
     print("Done clustering\n")
     print("Time clustering: ", round(time.time()-t0,2), "s")
-    prediction, actual = test(k, x_test, cluster_values, cluster_labels, y_test)
-    
+    prediction, expectation = test(k, x_test, cluster_values, cluster_labels, y_test)
+    prediction, expectation = np.array(prediction), np.array(expectation)
     print("Time total: ", round(time.time()-t0,2), "s")
-    return np.array(prediction), np.array(actual)
+
+    print("prediction", prediction.shape)
+    print("expectation", expectation.shape)
+    confusion_matrix(expectation, prediction)
+    error_rate(expectation, prediction)
+
+    return prediction, expectation
 
 # Test clustering
-num_k = 7
-prediction, expectation = test_clustering(num_k, x_test, y_test, x_train, y_train)
-print("prediction", prediction.shape)
-print("expectation", expectation.shape)
+#test_clustering(x_test, y_test, x_train, y_train)
 
-confusion_matrix(expectation, prediction)
-error_rate(expectation, prediction)
+t0 = time.time()
+test(1, x_test, x_train, y_train, y_test)
+print("Runtime: ", round(time.time()-t0,2), "seconds")
