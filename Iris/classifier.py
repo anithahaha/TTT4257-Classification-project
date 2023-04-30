@@ -109,7 +109,7 @@ def calculate_w(x, t, W, alpha):
         grad += gradient_MSE(gk, t[i], x[i])
         mse += calcMSE(gk, t[i])
     new_W = update_W(new_W, alpha, grad)
-    print('MSE', mse)
+    #print('MSE', mse)
     #returns updated W
     return new_W
 
@@ -118,7 +118,7 @@ def training(alpha, iter):
     W = init_params()
     for j in range(iter):
         W = calculate_w(x_train, t_train, W, alpha)
-    print('W', W)
+    #print('W', W)
     return W
     
 def decision_rule(arr):
@@ -190,9 +190,21 @@ def expected_predicted_val(iris_types, data, label):
     print("Total: ", total)  
      
     return expected_values, predicted_values, error, correct, total
-print(data.shape)
 
+
+# Test 30 first as training data
+print("Classifying with 30 first values as training data.")
 x_train, x_test, t_train, t_test = seperate_data(30, 20, 'first')
+t_test = ohe(t_test)
+t_train = ohe(t_train)
+
+W_final = training(alpha=0.01, iter=4000) #likte tall: 0.00045,0.002,0.003, 20000
+expected_values, predicted_values, error, correct, total = expected_predicted_val(iris_types, x_test, t_test)
+confusion_matrix(expected_values, predicted_values, iris_types)
+
+# Test with 30 last as training data
+print("\nClassifying with 30 last values as training data.")
+x_train, x_test, t_train, t_test = seperate_data(20, 30, 'last')
 t_test = ohe(t_test)
 t_train = ohe(t_train)
 
