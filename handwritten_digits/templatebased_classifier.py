@@ -88,7 +88,7 @@ def error_rate(expected_values, predicted_values):
             error += 1
     num_elems = len(expected_values)
 
-    print("Error: ", error, "\nCorrect: ", correct, "\nError rate: ", round((correct/num_elems)*100,2), "%")
+    print("Error: ", error, "\nCorrect: ", correct, "\nError rate: ", round((error/num_elems)*100,2), "%")
     
     return correct, error, num_elems
 
